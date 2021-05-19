@@ -279,7 +279,7 @@ var Main = new Vue({
       };
 
       this.$nextTick(() => {
-        axios.post(options.url, options.data, { timeout: 10000 })
+        axios.post(options.url, options.data, { timeout: 50000 })
           .then((response) => {
             console.log(response);
             this.updateData(response.data)

@@ -1,6 +1,6 @@
-// const url = 'http://192.168.46.10:9201/mes/cjkb/execute' // 服务器
+const url = 'http://192.168.46.10:9201/mes/cjkb/execute' // 服务器
 // const url = 'http://192.168.120.62/mes/cjkb/execute' // 张杭烃本地
-const url = 'http://rap2api.taobao.org/app/mock/283615/mes/cjkb/execute:9999' // rap2模拟数据
+// const url = 'http://rap2api.taobao.org/app/mock/283615/mes/cjkb/execute:9999' // rap2模拟数据
 
 // 查询条件
 const data = {
@@ -14,7 +14,7 @@ const data = {
 // 最长查询时间
 const timeout = { timeout: 50000 }
 // 轮询的时间
-const time = 6 * 1000
+const time = 30 * 60 * 1000
 
 let Main = new Vue({
   el: '#app',

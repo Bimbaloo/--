@@ -1,9 +1,27 @@
-var Main = new Vue({
+// const url = 'http://192.168.46.10:9201/mes/cjkb/execute' // 服务器
+// const url = 'http://192.168.120.62/mes/cjkb/execute' // 张杭烃本地
+const url = 'http://rap2api.taobao.org/app/mock/283615/mes/cjkb/execute:9999' // rap2模拟数据
+
+// 查询条件
+const data = {
+  gc: '1530',
+  lh: '新基地4#',
+  ks: '组测三课',
+  cj: '三课一',
+  sbglcj: '组测三课一车间'
+}
+
+// 最长查询时间
+const timeout = { timeout: 50000 }
+// 轮询的时间
+const time = 6 * 1000
+
+let Main = new Vue({
   el: '#app',
   name: 'app',
   data: {
-    width: 265,
-    strokeWidth: 32,
+    width: 350,
+    strokeWidth: 40,
     time: '',
     timeDatas: [
       '08:00',
@@ -24,7 +42,9 @@ var Main = new Vue({
     wlqtl: 68, //物料齐套率
     sbdjs: 20, //设备点击率，
     ctl: 10, // 设备直通率
-    ydl: 10, // 移动率
+    ydl: 10, // 稼动率
+    ztl: 0, //直通率
+    jhdcl: 0, //计划达成率
     OQC: 20, // OQC
     zjshl: 20, // 治具损坏率
     percentage: 90,
@@ -135,6 +155,11 @@ var Main = new Vue({
         {
           label: '实际UPH',
           prop: 'uph',
+          align: 'center'
+        },
+        {
+          label: '直通率',
+          prop: 'ztl',
           align: 'center'
         }
       ],
@@ -286,43 +311,23 @@ var Main = new Vue({
   methods: {
     // 获取数据
     getData () {
-      const options = {
-        // method: 'GET',
-        method: 'POST',
-        // url: '../assets/mock.json',                         // 本地mock数据，需要使用get
-        url: 'http://192.168.46.10:9201/mes/cjkb/execute', // 服务器
-        // url: 'http://192.168.120.62/mes/cjkb/execute',         // 张杭烃本地
-        // url: 'http://rap2api.taobao.org/app/mock/283615/mes/cjkb/execute:9999',   // rap2模拟数据
-        headers: {
-          'user-agent': 'vscode-restclient',
-          'content-type': 'application/json'
-        },
-        data: {
-          gc: '1530',
-          lh: '新基地4#',
-          ks: '组测三课',
-          cj: '三课一',
-          sbglcj: '组测三课一车间'
-        }
-      }
-
       this.$nextTick(() => {
         axios
-          .post(options.url, options.data, { timeout: 50000 })
+          .post(url, data, timeout)
           .then(response => {
             console.log(response)
             this.updateData(response.data)
             // 每半小时更新数据
             setTimeout(() => {
               this.getData()
-            }, 30 * 60 * 1000)
+            }, time)
           })
           .catch(error => {
             console.log(error)
             // 因为网络等问题获取数据失败，每半小时重新获取
             setTimeout(() => {
               this.getData()
-            }, 30 * 60 * 1000)
+            }, time)
           })
       })
     },
@@ -343,10 +348,12 @@ var Main = new Vue({
       // 异常情况
       this.tableData.data4 = options.ycqk.data
 
-      this.ctl = Number(options.ycqk.yc.ctl.toFixed(2)) // 设备直通率
-      this.ydl = Number(options.ycqk.yc.ydl.toFixed(2)) // 移动率
-      this.zjshl = Number(options.ycqk.yc.zjshl.toFixed(2)) // 治具损坏率
-      this.OQC = Number(options.ycqk.yc.OQC.toFixed(2)) // OQC
+      this.jhdcl = Number((options.ycqk.yc.jhdcl * 100).toFixed(2)) // 直通率
+      this.ztl = Number((options.ycqk.yc.ztl * 100).toFixed(2)) // 直通率
+      this.ydl = Number((options.ycqk.yc.ydl * 100).toFixed(2)) // 稼动率
+
+      this.zjshl = Number((options.ycqk.yc.zjshl * 100).toFixed(2)) // 治具损坏率
+      this.OQC = Number((options.ycqk.yc.OQC * 100).toFixed(2)) // OQC
 
       // 生产进度
       let data = []
@@ -356,6 +363,8 @@ var Main = new Vue({
       options.scjd.forEach(el => {
         el.jhdcl = (el.jhdcl * 100).toFixed(2)
         el.wlqtl = (el.wlqtl * 100).toFixed(2)
+        el.ztl = (el.ztl * 100).toFixed(2)
+
         data.push(el.xt)
         lv.push(el.lv)
         huang.push(el.huang)
